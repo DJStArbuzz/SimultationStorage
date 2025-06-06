@@ -24,21 +24,15 @@ public class Main {
         user.makeOrder(fiveHinkals, storage);
 
         SimulationTime.setTime(LocalTime.of(9, 0));
-        Producer supplier = new Producer("Старик Хинкалыч", hinkal);
+        Producer supplier = new Producer("Старик Хинкалыч", hinkal, 5);
 
-        supplier.deliverToStorage(storage, 3);
+        supplier.deliverToStorage(storage, 5);
 
-        // Первая обработка (10:00)
-        SimulationTime.setTime(LocalTime.of(10, 0));
-        storage.completeOrders();
-
-        // Вторая поставка (11:00)
-        SimulationTime.setTime(LocalTime.of(11, 0));
-        supplier.deliverToStorage(storage, 3);
         // Вторая обработка (11:05)
-        SimulationTime.setTime(LocalTime.of(11, 5));
+        SimulationTime.setTime(LocalTime.of(15, 5));
 
         storage.completeOrders();
+        supplier.deliverToStorage(storage, 5);
 
         keeper.calculateSalary();
         courier.calculateSalary();

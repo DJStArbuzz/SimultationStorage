@@ -1,9 +1,10 @@
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class StorageSystemTests {
 
@@ -30,7 +31,7 @@ public class StorageSystemTests {
         user.makeOrder(fiveHinkals, storage);
 
         SimulationTime.setTime(LocalTime.of(9, 0));
-        Producer supplier = new Producer("Старик Хинкалыч", hinkal);
+        Producer supplier = new Producer("Старик Хинкалыч", hinkal, 5);
         supplier.deliverToStorage(storage, 5);
 
         // Первая обработка (10:00)
@@ -45,10 +46,11 @@ public class StorageSystemTests {
         courier.calculateSalary();
 
         LocalTime expectedTime = LocalTime.of(10, 26, 57);
-        Assert.assertEquals(SimulationTime.getCurrentTime(), expectedTime.truncatedTo(ChronoUnit.SECONDS));
-        Assert.assertEquals(courier.status, Worker.Status.SHIFT_ENDED);
-        Assert.assertEquals(keeper.status, Worker.Status.SHIFT_ENDED);
-        Assert.assertEquals(storage.getOrders().size(), 0);
+        assertEquals(SimulationTime.getCurrentTime(), expectedTime.truncatedTo(ChronoUnit.SECONDS));
+        assertEquals(courier.status, Worker.Status.SHIFT_ENDED);
+        assertEquals(keeper.status, Worker.Status.SHIFT_ENDED);
+        assertEquals(storage.getOrders().size(), 0);
+        assertEquals(supplier.getMaxCount(), 0);
     }
 
     @Test
@@ -60,7 +62,7 @@ public class StorageSystemTests {
 
         Warehouseman keeper = new Warehouseman(LocalTime.of(8, 0), LocalTime.of(16, 0));
         Courier courier = new Courier(LocalTime.of(10, 0), LocalTime.of(19, 0));
-        Assert.assertEquals(keeper.status, Worker.Status.NOT_WORKING);
+        assertEquals(keeper.status, Worker.Status.NOT_WORKING);
 
         storage.addStorekeeper(keeper);
         storage.addCourier(courier);
@@ -71,12 +73,20 @@ public class StorageSystemTests {
         Product[] fiveHinkals = new Product[4];
         Arrays.fill(fiveHinkals, hinkal);
         user.makeOrder(fiveHinkals, storage);
-        SimulationTime.setTime(LocalTime.of(9, 0));
+        SimulationTime.setTime(LocalTime.of(11, 0));
         storage.completeOrders();
-        System.out.println(SimulationTime.getCurrentTime());
-        Assert.assertEquals(courier.status, Worker.Status.NOT_WORKING);
-        Assert.assertEquals(keeper.status, Worker.Status.NOT_WORKING);
-        Assert.assertEquals(storage.getOrders().size(), 1);
+
+        assertEquals(courier.status, Worker.Status.NOT_WORKING);
+        assertEquals(keeper.status, Worker.Status.NOT_WORKING);
+        assertEquals(storage.getOrders().size(), 1);
+
+        Producer supplier = new Producer("Старик Хинкалыч", hinkal, 5);
+        supplier.deliverToStorage(storage, 5);
+        storage.completeOrders();
+
+        assertEquals(courier.status, Worker.Status.NOT_WORKING);
+        assertEquals(keeper.status, Worker.Status.NOT_WORKING);
+        assertEquals(storage.getOrders().size(), 0);
 
     }
 
@@ -97,8 +107,8 @@ public class StorageSystemTests {
         storage.addCourier(courier);
 
         // Регистрируем поставщика
-        Producer supplier = new Producer("Пиццерия", pizza);
-        Producer supplier2 = new Producer("Колер", cola);
+        Producer supplier = new Producer("Пиццерия", pizza, 2);
+        Producer supplier2 = new Producer("Колер", cola, 1);
         storage.addSupplier(supplier);
         storage.addSupplier(supplier2);
         // Пользователь создает заказ в 12:05
@@ -106,11 +116,14 @@ public class StorageSystemTests {
         User user = new User("pizza_lover@mail.com", "Пицца Фан", new Coordinates(3, 4));
         user.makeOrder(new Product[]{pizza, cola}, storage);
 
-        Assert.assertEquals(storage.getOrders().size(), 1);
+        assertEquals(storage.getOrders().size(), 1);
+        assertEquals(supplier.getMaxCount(), 2);
 
         // Поставка товара
         supplier.deliverToStorage(storage, 1);
         supplier2.deliverToStorage(storage, 1);
+
+        assertEquals(supplier.getMaxCount(), 1);
         // Обработка заказа
         storage.completeOrders();
 

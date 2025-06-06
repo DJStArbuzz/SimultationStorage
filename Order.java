@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  * Класс Заказ (Order)
- *
+
  * Представляет заказ, созданный пользователем. Содержит информацию о составе заказа,
  * статусе выполнения, участниках процесса обработки и географических координатах.
  */
@@ -23,7 +23,7 @@ public class Order {
     private final Map<Product, Integer> originalProducts;
 
     // Текущие товары (могут изменяться)
-    private Map<Product, Integer> products;
+    private final Map<Product, Integer> products;
     // Идентификатор курьера, назначенного для доставки (-1 если не назначен)
     private String courierId = "NONE";
     // Флаг наличия достаточного количества товаров на складе
